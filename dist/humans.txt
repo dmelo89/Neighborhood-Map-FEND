@@ -1,0 +1,14 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+  Daniel Melo -- Developer -- @dmelo89
+
+# THANKS
+
+  Udacity team!
+
+# TECHNOLOGY COLOPHON
+
+  HTML5, CSS3, JS, KnockoutJS, jQuery, Google Maps, Wikipedia.
