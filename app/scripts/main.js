@@ -1,3 +1,4 @@
+// Setting a list of places that I'm interested
 var myPlaces = [
     {
         coords: {
@@ -31,11 +32,12 @@ var myPlaces = [
         name  : 'Golden Gate Park'
     }
 ]
+// Knockout ViewModel
 var ViewModel = function () {
     var self = this;
 
-    // GOOGLE MAPS BELLOW Here I set the maps center opition, this will be the
-    // initial place of the map.
+    // GOOGLE MAPS BELLOW 
+    // Here I set the maps center opition, this will be the initial place of the map.
 
     self.center            = new google
         .maps
@@ -86,7 +88,9 @@ var ViewModel = function () {
                         .maps
                         .LatLng(data.coords.lat, data.coords.lng)
                 });
-            // Bind a infowindow object and animation for marker
+            
+            // Variables that I use to create the infoWindow and it's content
+
             var wikiArticles = [];
             var thisPlaceDescription;
             var thisPlaceName = data.name;
@@ -107,16 +111,25 @@ var ViewModel = function () {
                     i = 0;
                     for (article in response[1]) {
                         i++
+
                         // Limiting Results to 5
+
                         if (i <= 5) {
+
                         // Here I push list items to the wikiArticles Array
+
                         wikiArticles.push("<li><a target='_blank' href='http://en.wikipedia.org/wiki/" + response[1][article] + "'>" + response[1][article] + "</a></li>");
                         }
-                        // Here I get the description of the First result from Wikipedia
+
+                        // Here I get the description of the first result from Wikipedia
+
                         if (i === 1) {
                             thisPlaceDescription = response[2][article];
                         }
                     }
+
+                    // Update the infoWindow content
+
                     infoWindowContent = '<h5>' + thisPlaceName + '</h5> <h6>Wikipedia Description:</h6> <p>' + thisPlaceDescription +'</p> <p>Wikipedia Articles related to this location:</p><ul>'+ wikiArticles.join('') +'</ul>';
                 },
                 url     : wikiURL
@@ -165,12 +178,16 @@ var ViewModel = function () {
             });
     };
 
+    // Function for the Click Event
+
     self.setPlace          = function (marker) {
         google
             .maps
             .event
             .trigger(marker, 'click');
     };
+
+    // Function for changing the map position
 
     self.centerMap         = function () {
         self
@@ -186,6 +203,8 @@ var ViewModel = function () {
             .toLowerCase();
 
     });
+
+    // Search function that is run when user inserts a search query
 
     self.searchLoad        = function () {
 
@@ -211,7 +230,3 @@ var ViewModel = function () {
 };
 
 $(ko.applyBindings(new ViewModel()));
-// function initMap() {     var mapDiv = document.getElementById('map');     var
-// map = new google         .maps         .Map(mapDiv, {             center: {
-// lat: 37.776960,                 lng: -122.419588             }, zoom  : 13
-// }); }
