@@ -19,16 +19,17 @@ Note: any .css or .scss files included in the 'styles' directory
 will be correctly compiled during `gulp serve` and `gulp`
  */
 
-html, body {
-  font-family: 'Roboto', 'Helvetica', sans-serif;
-  margin: 0;
-  padding: 0;
-  height: 100%;
+body,
+html {
+    font-family: "Roboto", "Helvetica", sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 #map {
-        width: 100%;
-        height: 100%;
-        z-index: 1;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
     position: absolute;
 }
 .maps-error {

@@ -31,20 +31,30 @@ var myPlaces = [
         },
         name  : 'Golden Gate Park'
     }
-]
+];
 // Knockout ViewModel
 var ViewModel = function () {
     var self = this;
 
-    // GOOGLE MAPS BELLOW 
-    // Here I set the maps center opition, this will be the initial place of the map.
+    // Markers variable
 
-    self.center            = new google
-        .maps
-        .LatLng(37.805316, -122.445270);
+    self.markers           = ko.observableArray([]);
+
+    // GOOGLE MAPS BELLOW
 
     self.init              = function () {
 
+        // Bounds Variable for map fitting in screens
+
+        var bounds = new google
+            .maps
+            .LatLngBounds();
+
+        // Here I set the maps center option, this will be the initial place of the map.
+
+        self.center = new google
+            .maps
+            .LatLng(37.805316, -122.445270);
         // In the mapOptions var I set the custom options for the Google Maps Object
         var mapOptions = {
             center                  : self.center,
@@ -67,12 +77,9 @@ var ViewModel = function () {
 
         // Here I create a Google Maps Object with the mapOptions
 
-        self.map     = new google
+        self.map = new google
             .maps
             .Map(document.getElementById('map'), mapOptions);
-
-        self.markers = ko.observableArray([]);
-
 
         // Create the markers and push it into self.markers array
 
@@ -88,37 +95,34 @@ var ViewModel = function () {
                         .maps
                         .LatLng(data.coords.lat, data.coords.lng)
                 });
-            
+            bounds.extend(marker.position);
+
             // Variables that I use to create the infoWindow and it's content
 
-            var wikiArticles = [];
-            var thisPlaceDescription;
-            var thisPlaceName = data.name;
+            var wikiArticles  = [],
+                thisPlaceDescription,
+                thisPlaceName = data.name,
+                infoWindowContent;
 
-            // Just in case the info doesn't load from the Wikipedia API, we have already set a infoWindow content.
-
-            var infoWindowContent = '<h5>' + thisPlaceName + '</h5> <p>Ops... Unable to reach Wikipedia info</p>';
-            
             // Wiki URL for the open search, here we find the info in json
 
             var wikiURL = 'http://en.wikipedia.org/w/api.php?format=json&action=opensearch&search=' + thisPlaceName;
 
             // Getting the info from Wikipedia
-
             $.ajax({
                 dataType: "jsonp",
                 success : function (response) {
                     i = 0;
-                    for (article in response[1]) {
-                        i++
+                    for (var article in response[1]) {
+                        i++;
 
                         // Limiting Results to 5
 
                         if (i <= 5) {
 
-                        // Here I push list items to the wikiArticles Array
+                            // Here I push list items to the wikiArticles Array
 
-                        wikiArticles.push("<li><a target='_blank' href='http://en.wikipedia.org/wiki/" + response[1][article] + "'>" + response[1][article] + "</a></li>");
+                            wikiArticles.push("<li><a target='_blank' href='http://en.wikipedia.org/wiki/" + response[1][article] + "'>" + response[1][article] + "</a></li>");
                         }
 
                         // Here I get the description of the first result from Wikipedia
@@ -128,12 +132,21 @@ var ViewModel = function () {
                         }
                     }
 
+                },
+                    url     : wikiURL
+                })
+                .done(function (data) {
                     // Update the infoWindow content
 
-                    infoWindowContent = '<h5>' + thisPlaceName + '</h5> <h6>Wikipedia Description:</h6> <p>' + thisPlaceDescription +'</p> <p>Wikipedia Articles related to this location:</p><ul>'+ wikiArticles.join('') +'</ul>';
-                },
-                url     : wikiURL
-            });
+                    infoWindowContent = '<h5>' + thisPlaceName + '</h5> <h6>Wikipedia Description:</h6> <p>' + thisPlaceDescription + '</p> <p>Wikipedia Articles related to this location:</p><ul>' + wikiArticles.join('') + '</ul>';
+
+                })
+                .fail(function () {
+                    // Just in case the info doesn't load from the Wikipedia API, we have already
+                    // set a infoWindow content.
+                    infoWindowContent = '<h5>' + thisPlaceName + '</h5> <p>Ops... Unable to reach Wikipedia info</p>';
+                });
+            $.ajax({});
 
             self.infowindow = new google
                 .maps
@@ -146,12 +159,12 @@ var ViewModel = function () {
                         .map
                         .panTo(marker.getPosition());
 
-                    // Makes the marker animate for 3 seconds
+                    // Makes the marker animate 2 times
 
                     marker.setAnimation(google.maps.Animation.BOUNCE);
                     setTimeout(function () {
                         marker.setAnimation(null);
-                    }, 3000);
+                    }, 1400);
 
                     // Set the InfoWindow Content
 
@@ -168,14 +181,22 @@ var ViewModel = function () {
                 .markers
                 .push(marker);
         });
+
         // Event that makes the map center load the original value when closing a
         // infowindow
+
         google
             .maps
             .event
             .addListener(self.infowindow, 'closeclick', function () {
                 self.centerMap();
             });
+
+        // Lets fit the map in screens
+
+        self
+            .map
+            .fitBounds(bounds);
     };
 
     // Function for the Click Event
@@ -195,7 +216,7 @@ var ViewModel = function () {
             .panTo(self.center);
     };
 
-    self.searchQuery = ko.observable("");
+    self.searchQuery       = ko.observable('');
     self.searchQueryFilter = ko.computed(function () {
 
         return self
@@ -206,7 +227,7 @@ var ViewModel = function () {
 
     // Search function that is run when user inserts a search query
 
-    self.searchLoad        = function () {
+    self.searchLoad        = ko.computed(function () {
 
         var userInput = self.searchQueryFilter();
 
@@ -216,7 +237,6 @@ var ViewModel = function () {
                 var eachMarker = marker
                     .name
                     .toLowerCase();
-
                 (eachMarker.indexOf(userInput) === -1)
                     ? marker.setMap(null)
                     : marker.setMap(self.map);
@@ -225,8 +245,13 @@ var ViewModel = function () {
                     : marker.listVisible(true);
 
             });
+    }, this);
+    initMap                = function () {
+        self.init();
     };
-    self.init();
+    mapsAPIError = function(){
+        alert('Maps API failed to load!');
+    }
 };
 
 $(ko.applyBindings(new ViewModel()));
